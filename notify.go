@@ -55,7 +55,12 @@ func (notif *Notifier) RegisterAborters(svc ...Aborter) {
 // Notify sends configuration change notification to Updateable services.
 //
 // This method should be called right after services and aborters registered.
+// It sends notification to the configuration object itself too, if it implements
+// Updateable.
 func (notif *Notifier) Notify() error {
+	if cfg, ok := notif.ctrl.Config().(Updateable); ok {
+		cfg.UpdateConfig(notif.ctx, notif.ctrl)
+	}
 	for _, svc := range notif.services {
 		err := svc.UpdateConfig(notif.ctx, notif.ctrl)
 		if err == nil {
