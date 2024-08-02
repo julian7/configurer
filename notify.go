@@ -85,6 +85,8 @@ func (notif *Notifier) Notify() error {
 // the file to the watchlist immediately, and continues trying with an
 // exponential backoff (starting with 1/2 seconds, with a multiplier of 1.5,
 // backing off after 10 tries).
+//
+// Watch can be canceled by calling cancelFunc of the provided context.
 func (notif *Notifier) Watch() error {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -123,6 +125,8 @@ func (notif *Notifier) watch() {
 				return
 			}
 			notif.logger.Warn("fsnotify error", "error", err)
+		case <-notif.ctx.Done():
+			return
 		}
 	}
 }

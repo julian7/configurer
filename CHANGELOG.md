@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-No changes so far.
+Changed:
+
+* Notifier.Watch: now it can be canceled by the provided context
 
 ## [v0.1.0] - May 12, 2024
 

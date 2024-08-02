@@ -73,6 +73,8 @@ Then, configuration can be read from `cctrl.Config()` directly. However, portion
 ```go
 func runServer() error {
 	...
+	ctx, cancel := context.WithCancel(context.Background)
+	defer cancel()
 	// set up services
 	someService := NewSomeservice(ctx)
 	otherService := NewOtherservice(ctx)
