@@ -66,6 +66,11 @@ func (ctrl *Control) readConfig() error {
 		return nil
 	}
 
+	if len(changelog) < 1 {
+		ctrl.changed = []string{}
+		return nil
+	}
+
 	ctrl.changed = make([]string, 0, len(changelog))
 	for _, change := range changelog {
 		ctrl.changed = append(ctrl.changed, strings.Join(change.Path, "."))

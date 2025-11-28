@@ -11,6 +11,7 @@ Changed:
 
 * Notifier.Watch: now it can be canceled by the provided context
 * Notifier.RegisterServices: sends initial notification of configuration updates to services upon registration
+* Don't fire update notification if updated config is identical to the previous one
 
 ## [v0.1.0] - May 12, 2024
 
