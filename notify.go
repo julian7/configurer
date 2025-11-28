@@ -30,6 +30,7 @@ type Notifier struct {
 	services []Updateable
 	aborters []Aborter
 	ctrl     *Control
+	notified bool
 	wantdown bool
 }
 
@@ -46,12 +47,17 @@ func NewNotifier(ctx context.Context, ctrl *Control, logger *slog.Logger) *Notif
 // It also sends an initial notification to each service right after registration.
 func (notif *Notifier) RegisterServices(svc ...Updateable) error {
 	notif.services = append(notif.services, svc...)
+	if !notif.notified {
+		return nil
+	}
+
 	for _, svc := range svc {
 		err := notif.notify(svc)
 		if err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
@@ -66,14 +72,18 @@ func (notif *Notifier) RegisterAborters(svc ...Aborter) {
 // It sends notification to the configuration object itself too, if it implements
 // Updateable.
 func (notif *Notifier) Notify() error {
+	if notif.notified {
+		return nil
+	}
 	if cfg, ok := notif.ctrl.Config().(Updateable); ok {
-		cfg.UpdateConfig(notif.ctx, notif.ctrl)
+		_ = cfg.UpdateConfig(notif.ctx, notif.ctrl)
 	}
 	for _, svc := range notif.services {
 		if err := notif.notify(svc); err != nil {
 			return err
 		}
 	}
+	notif.notified = true
 
 	return nil
 }
@@ -121,7 +131,7 @@ func (notif *Notifier) Watch() error {
 func (notif *Notifier) watch() {
 	defer func() {
 		notif.logger.Info("watcher finished")
-		notif.watcher.Close()
+		_ = notif.watcher.Close()
 	}()
 
 	for {

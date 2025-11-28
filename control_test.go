@@ -107,7 +107,7 @@ func TestReadConfig(t *testing.T) {
 		}
 	})
 
-	cctrl.readConfig()
+	_ = cctrl.readConfig()
 
 	t.Run("second", func(t *testing.T) {
 		for _, tc := range tt {
