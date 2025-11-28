@@ -81,7 +81,7 @@ func runServer() error {
 
 	notifier := configurer.NewNotify(ctx, cctrl, slog.Default())
 
-	notifier.RegisterServices(someService, otherService)
+	_ = notifier.RegisterServices(someService, otherService)
 	notifier.RegisterAborters(someService)
 
 	// sends initial configuration notifications to services

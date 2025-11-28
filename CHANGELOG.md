@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 Changed:
 
 * Notifier.Watch: now it can be canceled by the provided context
+* Notifier.RegisterServices: sends initial notification of configuration updates to services upon registration
 
 ## [v0.1.0] - May 12, 2024
 

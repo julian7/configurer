@@ -43,8 +43,16 @@ func NewNotifier(ctx context.Context, ctrl *Control, logger *slog.Logger) *Notif
 }
 
 // RegisterServices adds Updateable services to the list of services to be notified.
-func (notif *Notifier) RegisterServices(svc ...Updateable) {
+// It also sends an initial notification to each service right after registration.
+func (notif *Notifier) RegisterServices(svc ...Updateable) error {
 	notif.services = append(notif.services, svc...)
+	for _, svc := range svc {
+		err := notif.notify(svc)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // RegisterAborters adds Aborter services to the list of services handling abortions.
@@ -62,21 +70,28 @@ func (notif *Notifier) Notify() error {
 		cfg.UpdateConfig(notif.ctx, notif.ctrl)
 	}
 	for _, svc := range notif.services {
-		err := svc.UpdateConfig(notif.ctx, notif.ctrl)
-		if err == nil {
-			continue
+		if err := notif.notify(svc); err != nil {
+			return err
 		}
-		if !notif.wantdown {
-			notif.wantdown = true
-			for _, svc := range notif.aborters {
-				svc.Abort(err)
-				return err
-			}
-		}
-		return err
 	}
 
 	return nil
+}
+
+func (notif *Notifier) notify(svc Updateable) error {
+	err := svc.UpdateConfig(notif.ctx, notif.ctrl)
+	if err == nil {
+		return nil
+	}
+
+	if !notif.wantdown {
+		notif.wantdown = true
+		for _, svc := range notif.aborters {
+			svc.Abort(err)
+			return err
+		}
+	}
+	return err
 }
 
 // Watch starts configuration file watching for changes using fsnotify.
