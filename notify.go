@@ -52,7 +52,7 @@ func (notif *Notifier) RegisterServices(svc ...Updateable) error {
 	}
 
 	for _, svc := range svc {
-		err := notif.notify(svc)
+		err := notif.notifyService(svc)
 		if err != nil {
 			return err
 		}
@@ -75,11 +75,15 @@ func (notif *Notifier) Notify() error {
 	if notif.notified {
 		return nil
 	}
+	return notif.notify()
+}
+
+func (notif *Notifier) notify() error {
 	if cfg, ok := notif.ctrl.Config().(Updateable); ok {
 		_ = cfg.UpdateConfig(notif.ctx, notif.ctrl)
 	}
 	for _, svc := range notif.services {
-		if err := notif.notify(svc); err != nil {
+		if err := notif.notifyService(svc); err != nil {
 			return err
 		}
 	}
@@ -88,7 +92,7 @@ func (notif *Notifier) Notify() error {
 	return nil
 }
 
-func (notif *Notifier) notify(svc Updateable) error {
+func (notif *Notifier) notifyService(svc Updateable) error {
 	err := svc.UpdateConfig(notif.ctx, notif.ctrl)
 	if err == nil {
 		return nil
@@ -161,7 +165,7 @@ func (notif *Notifier) modify(event fsnotify.Event) {
 	if err := notif.ctrl.readConfig(); err != nil {
 		notif.logger.Warn("error reloading config", "error", err)
 	}
-	_ = notif.Notify()
+	_ = notif.notify()
 }
 
 func (notif *Notifier) replace(event fsnotify.Event) {
@@ -171,7 +175,7 @@ func (notif *Notifier) replace(event fsnotify.Event) {
 	if err := notif.ctrl.readConfig(); err != nil {
 		notif.logger.Warn("error reloading config", "error", err)
 	}
-	_ = notif.Notify()
+	_ = notif.notify()
 }
 
 func (notif *Notifier) readdWatcher(attempt int) func() {
